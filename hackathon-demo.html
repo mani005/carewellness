@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SalesAI Orchestrator - Hackathon Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #2d3748;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .demo-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .chat-demo {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #4a7c59, #8fbc8f);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .message.bot .message-avatar {
+            background: linear-gradient(135deg, #4a7c59, #8fbc8f);
+            color: white;
+        }
+
+        .message-content {
+            max-width: 70%;
+        }
+
+        .message.user .message-content {
+            text-align: right;
+        }
+
+        .message-bubble {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: inline-block;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .message.bot .message-bubble {
+            background: white;
+            color: #2d3748;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .chat-input input:focus {
+            border-color: #4a7c59;
+        }
+
+        .chat-input button {
+            background: linear-gradient(135deg, #4a7c59, #8fbc8f);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.3s ease;
+        }
+
+        .chat-input button:hover {
+            transform: translateY(-2px);
+        }
+
+        .system-diagram {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            height: 600px;
+            overflow: auto;
+        }
+
+        .diagram-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #4a7c59;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .diagram-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        .demo-controls {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+        }
+
+        .demo-controls h3 {
+            color: #4a7c59;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .scenario-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .scenario-btn {
+            background: linear-gradient(135deg, #4a7c59, #8fbc8f);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.3s ease;
+        }
+
+        .scenario-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .features-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 4px solid #4a7c59;
+        }
+
+        .feature-card h4 {
+            color: #4a7c59;
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .response-bubble {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-left: 4px solid #4a7c59;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .product-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+
+        .product-price {
+            color: #4a7c59;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .btn-primary, .btn-secondary {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4a7c59, #8fbc8f);
+            color: white;
+            border: none;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #4a7c59;
+            border: 2px solid #4a7c59;
+        }
+
+        .btn-primary:hover, .btn-secondary:hover {
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .demo-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .scenario-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🚀 SalesAI Orchestrator</h1>
+            <p>Intelligent Sales Orchestration Through AI-Powered Chatbot Conversations</p>
+        </div>
+
+        <!-- Demo Controls -->
+        <div class="demo-controls">
+            <h3>🎯 Demo Scenarios</h3>
+            <div class="scenario-buttons">
+                <button class="scenario-btn" onclick="demoScenario('product')">Product Discovery</button>
+                <button class="scenario-btn" onclick="demoScenario('consultation')">Consultation Booking</button>
+                <button class="scenario-btn" onclick="demoScenario('bundle')">Bundle Promotion</button>
+                <button class="scenario-btn" onclick="demoScenario('reset')">Reset Chat</button>
+            </div>
+        </div>
+
+        <!-- Main Demo Section -->
+        <div class="demo-section">
+            <!-- Chat Demo -->
+            <div class="chat-demo">
+                <div class="chat-header">
+                    <h3>🌿 Wellness Curator Chatbot</h3>
+                    <p>Powered by SalesAI Orchestrator</p>
+                </div>
+                
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message bot">
+                        <div class="message-avatar">🌿</div>
+                        <div class="message-content">
+                            <div class="message-bubble">
+                                Hello! I'm your personal Wellness Curator. How can I help you today? I can recommend products, book consultations, or help you find the perfect skincare routine.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-input">
+                    <input type="text" id="chatInput" placeholder="Type your message here..." onkeypress="handleKeyPress(event)">
+                    <button onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+
+            <!-- System Diagram -->
+            <div class="system-diagram">
+                <div class="diagram-title">🏗️ System Architecture</div>
+                <div class="diagram-container">
+┌─────────────────┐    ┌─────────────────────┐    ┌─────────────────┐
+│   LWC Chatbot   │    │  SalesAI           │    │  Einstein      │
+│   Interface     │    │  Orchestrator      │    │  LLM Service   │
+│                 │    │                     │    │                 │
+│ • User Input    │───▶│ • Intent Analysis  │───▶│ • AI Processing │
+│ • Message       │    │ • Route to Agents  │    │ • Response Gen  │
+│ • Context      │    │ • Orchestrate Flow │    │ • Validation   │
+└─────────────────┘    └─────────────────────┘    └─────────────────┘
+         │                       │                       │
+         │                       ▼                       │
+         │              ┌─────────────────────┐          │
+         │              │  Agent Execution    │          │
+         │              │  Engine             │          │
+         │              │                     │          │
+         │              │ • Product Finder    │◀─────────┘
+         │              │ • Consultation      │
+         │              │ • Lead Qualifier    │
+         │              │ • Bundle Promoter   │
+         └──────────────┼─────────────────────┼──────────┘
+                        │                     │
+                        ▼                     ▼
+              ┌─────────────────┐    ┌─────────────────┐
+              │  Customer       │    │  Response       │
+              │  Response       │    │  HTML           │
+              │  Builder        │    │  Converter     │
+              │                 │    │                 │
+              │ • Structured    │───▶│ • Rich HTML     │
+              │   Data          │    │ • Interactive   │
+              │ • Business      │    │   Buttons       │
+              │   Logic         │    │ • Vitalchat2    │
+              └─────────────────┘    │   Theme         │
+                                     └─────────────────┘
+                                              │
+                                              ▼
+                                     ┌─────────────────┐
+                                     │  Chatbot        │
+                                     │  Response       │
+                                     │  Bubble         │
+                                     │                 │
+                                     │ • Product Cards │
+                                     │ • Book Now      │
+                                     │ • Add to Cart   │
+                                     │ • Consultation  │
+                                     └─────────────────┘
+
+Key Features:
+• AI-Powered Intent Analysis
+• Multi-Agent Orchestration
+• Real-time Response Generation
+• Rich HTML UI Components
+• Seamless LWC Integration
+• Intelligent Fallback Handling
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="features-section">
+            <h3 style="text-align: center; color: #4a7c59; margin-bottom: 30px;">✨ Key Features & Benefits</h3>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4>🤖 AI-Powered Orchestration</h4>
+                    <p>Intelligent routing and execution of multiple AI agents based on customer intent and context.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🛍️ Smart Product Discovery</h4>
+                    <p>Context-aware product recommendations with reasoning and personalized match scores.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📅 Dynamic Consultation Booking</h4>
+                    <p>AI-driven consultation recommendations with urgency assessment and slot availability.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🎨 Rich Response Bubbles</h4>
+                    <p>Beautiful, interactive HTML responses with action buttons and product cards.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🚀 Scalable Architecture</h4>
+                    <p>Built on Salesforce platform with modern LWC components and extensible design.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>💰 Revenue Generation</h4>
+                    <p>Converts conversations to sales opportunities with intelligent upsell and bundle promotion.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let chatHistory = [];
+        let currentScenario = '';
+
+        // Demo scenarios
+        const scenarios = {
+            product: {
+                userInput: "I have acne-prone skin and need help",
+                botResponse: {
+                    type: 'product_recommendation',
+                    message: "I understand you're dealing with acne-prone skin. Let me analyze your needs and recommend the perfect solutions.",
+                    products: [
+                        { name: "Acne Control Serum Pro", price: "$34.99", reasoning: "Clinical-grade formula for oily, acne-prone skin" },
+                        { name: "Gentle Cleansing Gel", price: "$24.99", reasoning: "Non-irritating cleanser that won't strip your skin" },
+                        { name: "Oil-Control Moisturizer", price: "$28.99", reasoning: "Lightweight hydration that controls shine" }
+                    ]
+                }
+            },
+            consultation: {
+                userInput: "I want to talk to a dermatologist",
+                botResponse: {
+                    type: 'consultation',
+                    message: "Great idea! A professional consultation will give you personalized advice. Here are your options:",
+                    consultation: {
+                        urgency: "high",
+                        reasoning: "Professional skin analysis maximizes treatment effectiveness",
+                        slots: ["Today 2:00 PM", "Tomorrow 10:00 AM", "Tomorrow 3:00 PM"]
+                    }
+                }
+            },
+            bundle: {
+                userInput: "What's your best value package?",
+                botResponse: {
+                    type: 'bundle',
+                    message: "I've curated the perfect starter kit for you with amazing savings!",
+                    bundle: {
+                        name: "Complete Acne Solution",
+                        originalPrice: "$78.97",
+                        bundlePrice: "$63.99",
+                        discount: "19%",
+                        products: ["Acne Control Serum Pro", "Gentle Cleansing Gel", "Oil-Control Moisturizer"]
+                    }
+                }
+            }
+        };
+
+        function demoScenario(scenario) {
+            if (scenario === 'reset') {
+                resetChat();
+                return;
+            }
+
+            currentScenario = scenario;
+            const scenarioData = scenarios[scenario];
+            
+            // Add user message
+            addMessage(scenarioData.userInput, 'user');
+            
+            // Simulate AI processing
+            setTimeout(() => {
+                addBotResponse(scenarioData.botResponse);
+            }, 1000);
+        }
+
+        function addMessage(text, sender) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = sender === 'user' ? '👤' : '🌿';
+            
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.textContent = text;
+            
+            content.appendChild(bubble);
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+            chatMessages.appendChild(messageDiv);
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addBotResponse(response) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = '🌿';
+            
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            
+            // Add main message
+            const messageText = document.createElement('p');
+            messageText.textContent = response.message;
+            messageText.style.marginBottom = '15px';
+            bubble.appendChild(messageText);
+            
+            // Add response-specific content
+            if (response.type === 'product_recommendation') {
+                bubble.appendChild(createProductGrid(response.products));
+            } else if (response.type === 'consultation') {
+                bubble.appendChild(createConsultationSection(response.consultation));
+            } else if (response.type === 'bundle') {
+                bubble.appendChild(createBundleSection(response.bundle));
+            }
+            
+            content.appendChild(bubble);
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+            chatMessages.appendChild(messageDiv);
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function createProductGrid(products) {
+            const grid = document.createElement('div');
+            grid.className = 'product-grid';
+            
+            products.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                
+                card.innerHTML = `
+                    <div class="product-name">${product.name}</div>
+                    <div class="product-price">${product.price}</div>
+                    <div style="font-size: 12px; color: #666; margin-bottom: 10px;">${product.reasoning}</div>
+                    <div class="action-buttons">
+                        <a href="#" class="btn-secondary">View Product</a>
+                        <a href="#" class="btn-primary">Add to Cart</a>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+            
+            return grid;
+        }
+
+        function createConsultationSection(consultation) {
+            const section = document.createElement('div');
+            section.className = 'response-bubble';
+            section.style.marginTop = '15px';
+            
+            section.innerHTML = `
+                <h4 style="color: #4a7c59; margin-bottom: 10px;">Professional Consultation</h4>
+                <p style="margin-bottom: 10px;">${consultation.reasoning}</p>
+                <p style="margin-bottom: 15px;"><strong>Priority: </strong><span style="color: #dc3545;">${consultation.urgency}</span></p>
+                <p style="margin-bottom: 10px;"><strong>Available Slots:</strong></p>
+                <ul style="margin-bottom: 15px; padding-left: 20px;">
+                    ${consultation.slots.map(slot => `<li>${slot}</li>`).join('')}
+                </ul>
+                <div class="action-buttons">
+                    <a href="#" class="btn-primary">Book Consultation</a>
+                </div>
+            `;
+            
+            return section;
+        }
+
+        function createBundleSection(bundle) {
+            const section = document.createElement('div');
+            section.className = 'response-bubble';
+            section.style.marginTop = '15px';
+            section.style.background = 'linear-gradient(135deg, #4a7c59, #8fbc8f)';
+            section.style.color = 'white';
+            
+            section.innerHTML = `
+                <h4 style="margin-bottom: 10px;">${bundle.name}</h4>
+                <div style="background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 6px; display: inline-block; margin-bottom: 10px;">
+                    Save ${bundle.discount}
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <span style="text-decoration: line-through; opacity: 0.8; margin-right: 10px;">${bundle.originalPrice}</span>
+                    <span style="font-size: 1.2em; font-weight: 600;">${bundle.bundlePrice}</span>
+                </div>
+                <p style="margin-bottom: 15px;">Includes: ${bundle.products.join(', ')}</p>
+                <div class="action-buttons">
+                    <a href="#" class="btn-secondary" style="background: white; color: #4a7c59;">View Bundle</a>
+                    <a href="#" class="btn-primary" style="background: white; color: #4a7c59;">Add Bundle to Cart</a>
+                </div>
+            `;
+            
+            return section;
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                addMessage(message, 'user');
+                input.value = '';
+                
+                // Simulate AI response
+                setTimeout(() => {
+                    addMessage("I'm processing your request through our AI orchestration system. Let me find the best solutions for you!", 'bot');
+                }, 1000);
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function resetChat() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = `
+                <div class="message bot">
+                    <div class="message-avatar">🌿</div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            Hello! I'm your personal Wellness Curator. How can I help you today? I can recommend products, book consultations, or help you find the perfect skincare routine.
+                        </div>
+                    </div>
+                </div>
+            `;
+            currentScenario = '';
+        }
+    </script>
+</body>
+</html>
